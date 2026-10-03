@@ -19,6 +19,8 @@ Public on GitHub as `zeraien/m5paper-dashboard`; the image is published to
 - Reads `headers['Content-Length']` unconditionally: responses must never be streamed/chunked.
 - Expects PNG, portrait 540×960, 16-level grayscale.
 - Draws a battery label over the bottom-left corner at (0, 936), about 80×24 px.
+- `dashboard.html` pins a render-time stamp (`as of Weekday @ HHh`, `rendered_at`) to the
+  bottom-right corner; keep both bottom corners clear.
 - On a non-200 response the device keeps its boot image (`res/img/default.png`).
 
 ## Layout (paths under `web/`)
@@ -31,6 +33,10 @@ Public on GitHub as `zeraien/m5paper-dashboard`; the image is published to
 | `einkdisplay/weather_symbols.py` | met.no symbol name → `static/symbols/<code>.svg`. |
 | `templates/` | Jinja templates (Bootstrap 5 from CDN). Sections live in partials (`_weather.html`, `_calendar.html`, each self-contained incl. its `<style>`); `dashboard.html`, `weather.html`, `calendar.html` extend `_base.html` and `{% include %}` them. |
 
+Sizes in use: event rows `fs-1`, overflow / "No events" rows `fs-4`, `.main_temperature` 88 px,
+`.detail_value` 36 px, page side gutter 16 px (`row mx-1` in `_base.html`).
+Measure text and column widths with Playwright inside the container before changing sizes.
+
 ## Configuration
 `settings.env` (git-ignored, copy from `settings.env.example`): `YR_IDENTITY`, `WEATHER_LAT`,
 `WEATHER_LON`, `TZ`, `SCREEN_WIDTH`, `SCREEN_HEIGHT`, `CALENDAR_ICS` (all required), and
@@ -41,6 +47,11 @@ Public on GitHub as `zeraien/m5paper-dashboard`; the image is published to
   required because `/` makes Chromium request `/dashboard` from the same process).
 - Tests need Chromium, so run them in the container with the source mounted:
   `docker compose run --rm -v "$PWD:/python-docker" app pytest`
+- Tests assert rendered text (stamp, overflow labels, times). Run them after any template text
+  change: a failing test in CI skips the publish job.
+- README screenshot: `docker compose run --rm -v "$PWD:/python-docker" -v "$PWD/../docs:/out"
+  app python tools/readme_screenshot.py /out/screenshot.png`. Fixtures only, never real calendar
+  data; regenerate after layout changes.
 - The user may run a local `flask run --debug` on `127.0.0.1:5000` from WSL, which shadows the
   container's port on localhost. Check the container from inside:
   `docker compose exec app python -c "import urllib.request; ..."`.
@@ -49,7 +60,8 @@ Public on GitHub as `zeraien/m5paper-dashboard`; the image is published to
 - Push to `main` touching `web/**` (or a `v*` tag): CI builds `./web`, runs `pytest` in the image
   (linux/amd64), then pushes a linux/amd64 + linux/arm64 image tagged `latest`, `sha-<short>`
   and semver tags.
-- Server: `web/docker-compose.yaml` + `settings.env`, then `docker compose pull && docker compose up -d`.
+- Server runs its own compose file with env vars inline, pulling `:latest`. New settings
+  must be optional with defaults, or the next image will not start there.
 - `web/.dockerignore` keeps `settings.env` (secret ICS URL) out of locally built images.
 - Never commit `settings.env`, `*.sync-conflict-*` files (Syncthing) or exact home coordinates;
   test fixtures use Oslo coordinates.
