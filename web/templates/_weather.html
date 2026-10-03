@@ -1,0 +1,50 @@
+    <style type="text/css">
+        .weather_symbol {
+            width: 110px;
+        }
+        .weather_symbol.in_table {
+            width: 48px;
+        }
+        .main_temperature {
+            font-size: 88px;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        .detail_value {
+            font-size: 36px;
+        }
+    </style>
+    <div class="row">
+        <div class="col-lg-6 col-sm-12">
+            {% with forecast = forecasts[0] %}
+                <div class="row">
+                    <div class="col-3">
+                        <img alt="{{ forecast.symbol_name }}" class="weather_symbol" src="/static/symbols/{{forecast.symbol_code}}.svg"/>
+                    </div>
+                    <div class="col-4">
+                        <p class="main_temperature fw-bold">{{forecast.temperature}}°</p>
+                    </div>
+                    <div class="col-5">
+                        <ul class="list-unstyled fw-bold fs-4">
+                            <li><i class="fs-5 bi bi-thermometer-half"></i>&ensp;Feels <span class="detail_value">{{ forecast.feels_like_degrees }}°</span></li>
+                            <li><i class="fs-5 bi {{ 'bi-umbrella' if forecast.precipitation == 0 else 'bi-umbrella-fill' }}"></i>&ensp;<span class="detail_value">{{ forecast.precipitation }}</span> mm</li>
+                            <li><i class="fs-5 bi bi-wind"></i>&ensp;{{ forecast.wind_speed }} m/s</li>
+                        </ul>
+                    </div>
+                </div>
+            {% endwith %}
+        </div>
+        <div class="col-lg-6 col-sm-12">
+            <table class="table">
+                {% for forecast in forecasts %}
+                    <tr class="align-middle">
+                        <td class="fs-2"><b>{{ '%02d' % forecast.hour_start }} - {{ '%02d' % forecast.hour_end }}</b></td>
+                        <td><img alt="{{ forecast.symbol_name }}" class="weather_symbol in_table" src="/static/symbols/{{forecast.symbol_code}}.svg"/>
+                        <td class="fs-1 fw-bold">{{forecast.temperature}}°</td>
+                        <td class="text-end fs-4"><i class="bi {{ 'bi-umbrella' if forecast.precipitation == 0 else 'bi-umbrella-fill' }}"></i></td>
+                        <td class="text-end"><b class="fs-2">{{forecast.precipitation}}</b> mm</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>

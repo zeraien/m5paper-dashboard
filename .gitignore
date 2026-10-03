@@ -1,0 +1,6 @@
+settings.env
+*.sync-conflict-*
+*.swp
+.idea/
+__pycache__/
+.pytest_cache/

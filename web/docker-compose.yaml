@@ -1,0 +1,10 @@
+services:
+  app:
+    # Server: `docker compose pull && docker compose up -d` uses the published image.
+    # Development: `docker compose up --build` builds it from this directory.
+    image: ghcr.io/zeraien/m5paper-dashboard:latest
+    build: .
+    env_file: "settings.env"
+    ports:
+      - "5000:5000"
+    restart: unless-stopped

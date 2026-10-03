@@ -1,0 +1,9 @@
+requests==2.*
+flask==3.1.*
+jinja2==3.1.*
+icalendar==7.*
+recurring-ical-events==3.*
+playwright==1.*
+pillow==12.*
+gunicorn==26.*
+pytest==9.*
