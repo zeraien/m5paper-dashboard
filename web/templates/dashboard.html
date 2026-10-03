@@ -1,6 +1,17 @@
 {% extends "_base.html" %}
 
+{% block extra_head %}
+    <style type="text/css">
+        .render_time {
+            position: fixed;
+            right: 16px;
+            bottom: 4px;
+        }
+    </style>
+{% endblock %}
+
 {% block main %}
     {% include "_weather.html" %}
     {% include "_calendar.html" %}
+    <div class="render_time fs-5">as of {{ rendered_at.strftime('%A @ %Hh') }}</div>
 {% endblock %}

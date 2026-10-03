@@ -46,7 +46,7 @@ def _calendar_context(now):
 @templated("dashboard.html")
 def dashboard():
     now = datetime.now().astimezone()
-    return _weather_context(now) | _calendar_context(now)
+    return _weather_context(now) | _calendar_context(now) | {'rendered_at': now}
 
 
 @app.route('/calendar')

@@ -96,11 +96,19 @@ def test_dashboard_page_renders(client, monkeypatch, forecast_data, calendar_ics
     monkeypatch.setattr(app_module, 'build_days', lambda ics_data, now, **kwargs: build_days(
         ics_data, now=datetime(2025, 4, 2, 11, 30).astimezone(), **kwargs))
 
+    class FixedDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2025, 4, 2, 11, 30).astimezone()
+
+    monkeypatch.setattr(app_module, 'datetime', FixedDatetime)
+
     response = client.get('/dashboard')
 
     assert response.status_code == 200
     assert b'01d.svg' in response.data
     assert b'Dentist' in response.data
+    assert b'as of Wednesday 11h' in response.data
 
 
 def _with_fixed_now(build_forecasts):
