@@ -3,6 +3,10 @@
 A weather and calendar dashboard for the [M5Paper](https://docs.m5stack.com/en/core/m5paper)
 (ESP32, 4.7" 540×960 e-ink).
 
+<p align="center">
+  <img src="docs/screenshot.png" width="270" alt="Dashboard as rendered for the M5Paper: current weather, 6-hour forecast blocks and today's and tomorrow's calendar events">
+</p>
+
 A small Flask service renders an HTML dashboard, takes a screenshot of it with headless Chromium
 and serves it as a 16-level grayscale PNG. The M5Paper wakes up every hour, downloads the PNG,
 displays it and goes back to sleep.
@@ -83,6 +87,16 @@ The tests need Chromium, so they run inside the container:
 ```sh
 cd web
 docker compose run --rm -v "$PWD:/python-docker" app pytest
+```
+
+### Screenshot
+
+`docs/screenshot.png` is rendered from the test fixtures, so it contains no real data:
+
+```sh
+cd web
+docker compose run --rm -v "$PWD:/python-docker" -v "$PWD/../docs:/out" \
+    app python tools/readme_screenshot.py /out/screenshot.png
 ```
 
 ## Device setup
