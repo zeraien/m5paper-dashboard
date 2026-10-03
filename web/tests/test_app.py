@@ -108,7 +108,7 @@ def test_dashboard_page_renders(client, monkeypatch, forecast_data, calendar_ics
     assert response.status_code == 200
     assert b'01d.svg' in response.data
     assert b'Dentist' in response.data
-    assert b'as of Wednesday 11h' in response.data
+    assert b'as of Wednesday @ 11h' in response.data
 
 
 def _with_fixed_now(build_forecasts):
