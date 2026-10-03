@@ -41,6 +41,7 @@ Copy `web/settings.env.example` to `web/settings.env` and fill it in:
 | `TZ` | Local timezone, e.g. `Europe/Brussels` |
 | `SCREEN_WIDTH`, `SCREEN_HEIGHT` | Rendered image size; `540` × `960` for the M5Paper in portrait |
 | `CALENDAR_ICS` | iCalendar feed URL. For Google Calendar: Settings → (calendar) → *Secret address in iCal format* |
+| `CALENDAR_MAX_ROWS` | Optional, default `6`. Maximum calendar rows; events that don't fit are listed comma-separated in a last row. Tomorrow is only shown while today has fewer events than this |
 
 `settings.env` is git-ignored and excluded from Docker builds; the calendar URL in it is a secret.
 

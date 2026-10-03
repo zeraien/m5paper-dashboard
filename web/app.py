@@ -16,6 +16,7 @@ SCREEN_WIDTH = int(os.environ['SCREEN_WIDTH'])
 SCREEN_HEIGHT = int(os.environ['SCREEN_HEIGHT'])
 CALENDAR_ICS = os.environ['CALENDAR_ICS']
 RANGE_SPAN = 6
+CALENDAR_MAX_ROWS = int(os.environ.get('CALENDAR_MAX_ROWS', '6'))
 
 # Page that is screenshotted for the display, served by this same process.
 SCREEN_URL = 'http://127.0.0.1:5000/dashboard'
@@ -38,7 +39,7 @@ def _weather_context(now):
 
 def _calendar_context(now):
     ics_data = dl_calendar(CALENDAR_ICS)
-    return {'days': build_days(ics_data, now=now)}
+    return {'days': build_days(ics_data, now=now, max_rows=CALENDAR_MAX_ROWS)}
 
 
 @app.route('/dashboard')

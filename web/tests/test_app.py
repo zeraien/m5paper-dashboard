@@ -55,8 +55,8 @@ def test_calendar_page_renders(client, monkeypatch, calendar_ics):
 
     build_days = app_module.build_days
     monkeypatch.setattr(app_module, 'dl_calendar', lambda url: calendar_ics)
-    monkeypatch.setattr(app_module, 'build_days', lambda ics_data, now: build_days(
-        ics_data, now=datetime(2025, 4, 2, 11, 30).astimezone()))
+    monkeypatch.setattr(app_module, 'build_days', lambda ics_data, now, **kwargs: build_days(
+        ics_data, now=datetime(2025, 4, 2, 11, 30).astimezone(), **kwargs))
 
     response = client.get('/calendar')
 
@@ -65,6 +65,24 @@ def test_calendar_page_renders(client, monkeypatch, calendar_ics):
     assert b'14:00 - 15:00' in response.data
     assert b'Holiday' in response.data
     assert b'All day' not in response.data
+    # default 6 rows: today's 5 events fill 5, tomorrow's 2 go into one overflow row
+    assert b'Holiday, 10h Weekly sync' in response.data
+
+
+def test_calendar_hides_tomorrow_when_today_fills_the_rows(client, monkeypatch, calendar_ics):
+    from datetime import datetime
+
+    build_days = app_module.build_days
+    monkeypatch.setattr(app_module, 'CALENDAR_MAX_ROWS', 4)
+    monkeypatch.setattr(app_module, 'dl_calendar', lambda url: calendar_ics)
+    monkeypatch.setattr(app_module, 'build_days', lambda ics_data, now, **kwargs: build_days(
+        ics_data, now=datetime(2025, 4, 2, 11, 30).astimezone(), **kwargs))
+
+    response = client.get('/calendar')
+
+    assert response.status_code == 200
+    assert b'Tomorrow' not in response.data
+    assert b'14h Dentist, 18h Call with NY' in response.data
 
 
 def test_dashboard_page_renders(client, monkeypatch, forecast_data, calendar_ics):
@@ -75,8 +93,8 @@ def test_dashboard_page_renders(client, monkeypatch, forecast_data, calendar_ics
     monkeypatch.setattr(app_module, 'build_forecasts',
                         _with_fixed_now(app_module.build_forecasts))
     monkeypatch.setattr(app_module, 'dl_calendar', lambda url: calendar_ics)
-    monkeypatch.setattr(app_module, 'build_days', lambda ics_data, now: build_days(
-        ics_data, now=datetime(2025, 4, 2, 11, 30).astimezone()))
+    monkeypatch.setattr(app_module, 'build_days', lambda ics_data, now, **kwargs: build_days(
+        ics_data, now=datetime(2025, 4, 2, 11, 30).astimezone(), **kwargs))
 
     response = client.get('/dashboard')
 

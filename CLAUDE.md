@@ -27,13 +27,14 @@ Public on GitHub as `zeraien/m5paper-dashboard`; the image is published to
 | `app.py` | Flask routes only. `/` renders `SCREEN_URL` (`/dashboard`) to PNG (503 text/plain on any failure, no cached image). `/dashboard` combines weather + calendar; `/weather` and `/calendar` are single-section preview pages. |
 | `einkdisplay/forecast.py` | met.no data: `dl_forecast()`, `build_forecasts()`, `Forecast` (6-hour blocks, feels-like shows `?` when not computable). |
 | `einkdisplay/renderer.py` | `render_png(url, width, height)`: headless Chromium (Playwright) screenshot → grayscale, contrast ×2, 16 levels. Knows nothing about page content. |
-| `einkdisplay/calendar.py` | Google Calendar ICS: `dl_calendar()`, `build_days()` → `CalendarDay` (today, tomorrow) of `CalendarEvent`; recurrences expanded, cancelled and finished events dropped. |
+| `einkdisplay/calendar.py` | Google Calendar ICS: `dl_calendar()`, `build_days()` → `CalendarDay` (today, tomorrow) of `CalendarEvent`; recurrences expanded, cancelled and finished events dropped. With `max_rows`, rows are capped (overflow titles in `hidden_events`, one row) and Tomorrow is dropped unless Today has fewer events than the cap. |
 | `einkdisplay/weather_symbols.py` | met.no symbol name → `static/symbols/<code>.svg`. |
 | `templates/` | Jinja templates (Bootstrap 5 from CDN). Sections live in partials (`_weather.html`, `_calendar.html`, each self-contained incl. its `<style>`); `dashboard.html`, `weather.html`, `calendar.html` extend `_base.html` and `{% include %}` them. |
 
 ## Configuration
 `settings.env` (git-ignored, copy from `settings.env.example`): `YR_IDENTITY`, `WEATHER_LAT`,
-`WEATHER_LON`, `TZ`, `SCREEN_WIDTH`, `SCREEN_HEIGHT`, `CALENDAR_ICS`. All required.
+`WEATHER_LON`, `TZ`, `SCREEN_WIDTH`, `SCREEN_HEIGHT`, `CALENDAR_ICS` (all required), and
+`CALENDAR_MAX_ROWS` (optional, default 6: optional so existing deployments keep starting).
 
 ## Run and test (from `web/`)
 - `docker compose up --build` serves on port 5000 (gunicorn, 1 worker, 4 threads; threads are

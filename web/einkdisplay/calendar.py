@@ -18,18 +18,28 @@ def dl_calendar(url):
     return response.content
 
 
-def build_days(ics_data: bytes, now: datetime) -> list:
+def build_days(ics_data: bytes, now: datetime, max_rows: int = None) -> list:
     """
     CalendarDay for today and tomorrow; events of today that have already ended are left out.
+    :param max_rows: limit on event rows across both days, an overflow row included;
+        tomorrow is left out unless today has fewer events than this
     """
     try:
         calendar = Calendar.from_ical(ics_data)
     except Exception as e:
         raise CalendarError(f"Unable to parse calendar: {e}") from e
 
-    today = now.date()
-    return [CalendarDay(calendar, day=today, label='Today', now=now),
-            CalendarDay(calendar, day=today + timedelta(days=1), label='Tomorrow', now=now)]
+    today_date = now.date()
+    today = CalendarDay(calendar, day=today_date, label='Today', now=now)
+    tomorrow = CalendarDay(calendar, day=today_date + timedelta(days=1), label='Tomorrow', now=now)
+    if max_rows is None:
+        return [today, tomorrow]
+
+    today.limit(max_rows)
+    if len(today.events) >= max_rows:
+        return [today]
+    tomorrow.limit(max_rows - len(today.events))
+    return [today, tomorrow]
 
 
 def _local_midnight(d: date) -> datetime:
@@ -46,8 +56,20 @@ class CalendarDay:
                   if component.get('STATUS') != 'CANCELLED']
         self._events = sorted([e for e in events if e.all_day or e.end > now],
                               key=lambda e: (not e.all_day, e.sort_key))
+        self._visible_events = self._events
+        self._hidden_events = []
         self._date = day
         self._label = label
+
+    def limit(self, max_rows: int):
+        """
+        Show at most max_rows rows: when the events do not fit, the last row lists the rest.
+        """
+        if len(self._events) <= max_rows:
+            self._visible_events, self._hidden_events = self._events, []
+        else:
+            self._visible_events = self._events[:max_rows - 1]
+            self._hidden_events = self._events[max_rows - 1:]
 
     def _get_date(self) -> date:
         return self._date
@@ -60,6 +82,17 @@ class CalendarDay:
     def _get_events(self) -> list:
         return self._events
     events = property(_get_events)
+
+    def _get_visible_events(self) -> list:
+        return self._visible_events
+    visible_events = property(_get_visible_events)
+
+    def _get_hidden_events(self) -> list:
+        """
+        :return: events that did not fit, shown as one overflow row
+        """
+        return self._hidden_events
+    hidden_events = property(_get_hidden_events)
 
 
 class CalendarEvent:
@@ -103,3 +136,14 @@ class CalendarEvent:
             return 'All day'
         return f"{self._start:%H:%M} - {self._end:%H:%M}"
     time_range = property(_get_time_range)
+
+    def _get_short_label(self) -> str:
+        """
+        :return: title preceded by the start time ("10h", or "10:30" when not on the hour),
+            e.g. for the overflow row
+        """
+        if self._all_day:
+            return self._title
+        start = f"{self._start:%H}h" if self._start.minute == 0 else f"{self._start:%H:%M}"
+        return f"{start} {self._title}"
+    short_label = property(_get_short_label)

@@ -6,7 +6,7 @@
     {% for day in days %}
         <h2 class="fw-bold mt-3">{{ day.label }} <small class="text-body-secondary fs-4">{{ day.date.strftime('%a %d %b') }}</small></h2>
         <table class="table">
-            {% for event in day.events %}
+            {% for event in day.visible_events %}
                 <tr class="align-middle">
                     {% if event.all_day %}
                         <td class="fs-1" colspan="2">{{ event.title }}</td>
@@ -15,10 +15,15 @@
                         <td class="fs-1">{{ event.title }}</td>
                     {% endif %}
                 </tr>
-            {% else %}
+            {% endfor %}
+            {% if day.hidden_events %}
+                <tr>
+                    <td class="fs-4" colspan="2">{{ day.hidden_events | map(attribute='short_label') | join(', ') }}</td>
+                </tr>
+            {% elif not day.events %}
                 <tr>
                     <td class="fs-4">No events</td>
                 </tr>
-            {% endfor %}
+            {% endif %}
         </table>
     {% endfor %}
